@@ -7,14 +7,17 @@ import { AxiosAuthInstance } from "./api";
 import type { ColumnsType } from "antd/es/table";
 
 interface PropsType {
-  title: string;
-  loading: boolean;
+  title?: string;
+  loading?: boolean;
   columns: ColumnsType;
   data: any[];
   query: any;
   setQuery: any;
-  total: number;
-  downloadOptions: any;
+  total?: number;
+  downloadOptions?: any;
+  isPaginated?: boolean;
+  isDownloadable?: boolean;
+  isSearchable?: boolean;
 }
 
 function useDebounce<T>(value: T, delay?: number): T {
@@ -40,6 +43,9 @@ export const DataTable = ({
   setQuery,
   total = 10,
   downloadOptions,
+  isPaginated = true,
+  isDownloadable = true,
+  isSearchable = true,
 }: PropsType) => {
   const [search, setSearch] = useState("");
   const colObj = columns?.map((column: any) => ({
@@ -101,66 +107,74 @@ export const DataTable = ({
         columns={colObj}
         bordered
         dataSource={data}
-        pagination={{
-          defaultCurrent: query?.page ?? 1,
-          defaultPageSize: query?.take ?? 10,
-          showSizeChanger: true,
-          onChange: (page: number, pageSize: number) =>
-            setQuery({ ...query, page, take: pageSize }),
-          total,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} items`,
-        }}
-        title={() => (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "end",
-              alignItems: "center",
-              gap: "10px",
-            }}
-          >
-            <Input
-              bordered={false}
-              allowClear={{
-                clearIcon: (
-                  <MdClear
-                    title="Clear"
-                    style={{ fontSize: 20, margin: "auto" }}
-                  />
-                ),
+        pagination={
+          isPaginated && {
+            defaultCurrent: query?.page ?? 1,
+            defaultPageSize: query?.take ?? 10,
+            showSizeChanger: true,
+            onChange: (page: number, pageSize: number) =>
+              setQuery({ ...query, page, take: pageSize }),
+            total,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} items`,
+          }
+        }
+        title={() =>
+          (isDownloadable || isSearchable) && (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "end",
+                alignItems: "center",
+                gap: "10px",
               }}
-              suffix={
-                !search && (
-                  <BiSearchAlt
-                    title="Search"
-                    style={{
-                      fontSize: 20,
-                    }}
-                  />
-                )
-              }
-              style={{ borderBottom: "2px solid #ccc", width: 500 }}
-              prefix={
-                search && (
-                  <BiSearchAlt
-                    style={{
-                      fontSize: 20,
-                    }}
-                  />
-                )
-              }
-              placeholder="Search ..."
-              value={search ?? ""}
-              onChange={(e: any) => setSearch(e?.target?.value)}
-            />
-            <Button
-              title="Download"
-              icon={<MdOutlineCloudDownload style={{ fontSize: 20 }} />}
-              onClick={handleDownload}
-            />
-          </div>
-        )}
+            >
+              {isSearchable && (
+                <Input
+                  bordered={false}
+                  allowClear={{
+                    clearIcon: (
+                      <MdClear
+                        title="Clear"
+                        style={{ fontSize: 20, margin: "auto" }}
+                      />
+                    ),
+                  }}
+                  suffix={
+                    !search && (
+                      <BiSearchAlt
+                        title="Search"
+                        style={{
+                          fontSize: 20,
+                        }}
+                      />
+                    )
+                  }
+                  style={{ borderBottom: "2px solid #ccc", width: 500 }}
+                  prefix={
+                    search && (
+                      <BiSearchAlt
+                        style={{
+                          fontSize: 20,
+                        }}
+                      />
+                    )
+                  }
+                  placeholder="Search ..."
+                  value={search ?? ""}
+                  onChange={(e: any) => setSearch(e?.target?.value)}
+                />
+              )}
+              {isDownloadable && (
+                <Button
+                  title="Download"
+                  icon={<MdOutlineCloudDownload style={{ fontSize: 20 }} />}
+                  onClick={handleDownload}
+                />
+              )}
+            </div>
+          )
+        }
       />
     </div>
   );
