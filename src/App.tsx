@@ -40,7 +40,9 @@ function App() {
           },
           {
             title: "Action",
-            render: (_: any, record: any) => <button>View</button>,
+            render: (_: any, record: any) => (
+              <button key={record?.id}>View</button>
+            ),
           },
         ]}
         loading={userData?.isLoading}

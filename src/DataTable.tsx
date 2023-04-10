@@ -18,6 +18,7 @@ interface PropsType {
   isPaginated?: boolean;
   isDownloadable?: boolean;
   isSearchable?: boolean;
+  scroll?: any;
 }
 
 function useDebounce<T>(value: T, delay?: number): T {
@@ -46,6 +47,7 @@ export const DataTable = ({
   isPaginated = true,
   isDownloadable = true,
   isSearchable = true,
+  scroll = { x: 1300 },
 }: PropsType) => {
   const [search, setSearch] = useState("");
   const colObj = columns?.map((column: any) => ({
@@ -65,7 +67,7 @@ export const DataTable = ({
             let [key, value]: any = [];
             for ([key, value] of Object.entries(downloadOptions?.key)) {
               if (typeof value === "object") {
-                obj[key] = value?.value(data[value?.field]);
+                obj[key] = value?.value(data[value?.field] ?? "");
                 continue;
               }
 
@@ -74,13 +76,14 @@ export const DataTable = ({
                 value
                   ?.split(".")
                   ?.forEach(
-                    (nestedKey: any) => (nestedValue = nestedValue[nestedKey])
+                    (nestedKey: any) =>
+                      (nestedValue = nestedValue[nestedKey] ?? "")
                   );
                 obj[key] = nestedValue;
                 continue;
               }
 
-              obj[key] = data[value];
+              obj[key] = data[value] ?? "";
             }
             return obj;
           })
@@ -106,9 +109,13 @@ export const DataTable = ({
         loading={loading}
         columns={colObj}
         bordered
+        scroll={scroll}
         dataSource={data}
         pagination={
           isPaginated && {
+            responsive: true,
+            showQuickJumper: true,
+            showLessItems: true,
             defaultCurrent: query?.page ?? 1,
             defaultPageSize: query?.take ?? 10,
             showSizeChanger: true,

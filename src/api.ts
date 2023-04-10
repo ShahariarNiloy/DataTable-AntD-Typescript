@@ -7,7 +7,7 @@ const headers = {
   Authorization: `Bearer ${token}`,
 };
 export const AxiosAuthInstance = axios.create({
-  baseURL: "http://localhost:4000/api/v1",
+  baseURL: "https://bchapi.shebatech.com.bd:8090/api/v1",
   timeout: 1800000,
   headers,
 });
