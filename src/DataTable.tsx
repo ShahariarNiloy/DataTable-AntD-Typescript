@@ -1,10 +1,10 @@
-import { Button, Input, Table } from "antd";
-import { memo, useEffect, useState } from "react";
-import { BiSearchAlt } from "react-icons/bi";
-import { MdClear, MdOutlineCloudDownload } from "react-icons/md";
-import { utils, writeFile } from "xlsx";
-import { AxiosAuthInstance } from "./api";
-import type { ColumnsType } from "antd/es/table";
+import { Button, Input, Table } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { memo, useEffect, useState } from 'react';
+import { BiDownload, BiSearch } from 'react-icons/bi';
+import { MdClear } from 'react-icons/md';
+import { utils, writeFile } from 'xlsx';
+import { AxiosAuthInstance } from './api';
 
 interface PropsType {
   title?: string;
@@ -36,7 +36,7 @@ function useDebounce<T>(value: T, delay?: number): T {
 }
 
 export const DataTable = ({
-  title = "List",
+  title = 'List',
   loading = false,
   columns = [],
   data = [],
@@ -49,52 +49,55 @@ export const DataTable = ({
   isSearchable = true,
   scroll = { x: 1300 },
 }: PropsType) => {
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState('');
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const colObj = columns?.map((column: any) => ({
     ...column,
     key: column?.title,
   }));
 
   const handleDownload = async () => {
-    AxiosAuthInstance.get(downloadOptions?.url ?? "/").then((res: any) => {
+    setDownloadLoading(true);
+    AxiosAuthInstance.get(downloadOptions?.url ?? '/').then((res: any) => {
       const apiData = res?.data?.data[Object.keys(res?.data?.data)[0]]?.data;
 
       const sheetData = apiData?.length
         ? apiData?.map((data: any, idx: number) => {
             let obj: any = {
-              "Serial No.": idx + 1,
+              'Serial No.': idx + 1,
             };
             let [key, value]: any = [];
             for ([key, value] of Object.entries(downloadOptions?.key)) {
-              if (typeof value === "object") {
-                obj[key] = value?.value(data[value?.field] ?? "");
+              if (typeof value === 'object') {
+                obj[key] = value?.value(data[value?.field] ?? '');
                 continue;
               }
 
-              if (value?.includes(".")) {
+              if (value?.includes('.')) {
                 let nestedValue = data;
                 value
-                  ?.split(".")
+                  ?.split('.')
                   ?.forEach(
                     (nestedKey: any) =>
-                      (nestedValue = nestedValue[nestedKey] ?? "")
+                      (nestedValue = nestedValue[nestedKey] ?? '')
                   );
                 obj[key] = nestedValue;
                 continue;
               }
 
-              obj[key] = data[value] ?? "";
+              obj[key] = data[value] ?? '';
             }
             return obj;
           })
         : Object.keys(downloadOptions?.key)?.map((key: string) => ({
-            [key]: "",
+            [key]: '',
           }));
 
       const ws = utils.json_to_sheet(sheetData);
       const wb = utils.book_new();
-      utils.book_append_sheet(wb, ws, "Data");
-      writeFile(wb, title + ".xlsx");
+      utils.book_append_sheet(wb, ws, 'Data');
+      writeFile(wb, title + '.xlsx');
+      setDownloadLoading(false);
     });
   };
 
@@ -130,10 +133,10 @@ export const DataTable = ({
           (isDownloadable || isSearchable) && (
             <div
               style={{
-                display: "flex",
-                justifyContent: "end",
-                alignItems: "center",
-                gap: "10px",
+                display: 'flex',
+                justifyContent: 'end',
+                alignItems: 'center',
+                gap: '10px',
               }}
             >
               {isSearchable && (
@@ -143,13 +146,13 @@ export const DataTable = ({
                     clearIcon: (
                       <MdClear
                         title="Clear"
-                        style={{ fontSize: 20, margin: "auto" }}
+                        style={{ fontSize: 20, margin: 'auto' }}
                       />
                     ),
                   }}
                   suffix={
                     !search && (
-                      <BiSearchAlt
+                      <BiSearch
                         title="Search"
                         style={{
                           fontSize: 20,
@@ -157,10 +160,10 @@ export const DataTable = ({
                       />
                     )
                   }
-                  style={{ borderBottom: "2px solid #ccc", width: 500 }}
+                  style={{ borderBottom: '2px solid #ccc', width: 500 }}
                   prefix={
                     search && (
-                      <BiSearchAlt
+                      <BiSearch
                         style={{
                           fontSize: 20,
                         }}
@@ -168,15 +171,16 @@ export const DataTable = ({
                     )
                   }
                   placeholder="Search ..."
-                  value={search ?? ""}
+                  value={search ?? ''}
                   onChange={(e: any) => setSearch(e?.target?.value)}
                 />
               )}
               {isDownloadable && (
                 <Button
                   title="Download"
-                  icon={<MdOutlineCloudDownload style={{ fontSize: 20 }} />}
+                  icon={<BiDownload style={{ fontSize: 20 }} />}
                   onClick={handleDownload}
+                  loading={downloadLoading}
                 />
               )}
             </div>
